@@ -1,0 +1,190 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt 
+import seaborn as sns
+import sklearn
+
+##LOAD WDBC DATASET AND VISUALISATION##
+
+#Loading WDBC data and displays some rows
+all_df = pd.read_csv(r"C:\Users\Admin\WDBC.csv", index_col=False)
+all_df.head()
+
+#Drop the ID column
+all_df.drop("ID", axis=1, inplace=True)
+all_df.head()
+
+#Exploring the data
+all_df.info()
+
+#Basic statistics of each column 
+all_df.describe()
+
+#Check distributions of benign and malignant as labelled in "diagnosis" column
+all_df["Diagnosis"].value_counts()
+
+#Bar chart for each label
+sns.countplot(x="Diagnosis", data=all_df)
+
+#Use box plot to check value range and outliers of each feature
+data_mean = all_df.iloc[:, :]
+data_mean.plot(kind="box", subplots=True, layout=(8,4), sharex=False, sharey=False, fontsize=12, figsize=(15,20))
+
+#Compare the features data ranges. Only for the first 10 features, but try yourself to visualise more features
+fig, ax = plt.subplots(1, figsize=(20, 8))
+sns.boxplot(data=all_df.iloc[:, 1:11], ax=ax)
+
+#Use boxplots to see if certain feature can discriminate between benign and malignant
+fig, axes = plt.subplots(nrows=8, ncols=4, figsize=(15,20))
+fig.subplots_adjust(hspace=0.2, wspace=0.5)
+axes = axes.ravel()
+
+for i, col in enumerate(all_df.columns[1:]):
+    _=sns.boxplot(y=col, x="Diagnosis", data=all_df, ax=axes[i])
+    
+#Compute the correlation matrix to observe the correlations between pair of features
+corrMat = all_df.corr()
+
+mask = np.zeros_like(corrMat)                  #Generates a mask for the upper triangle
+mask[np.triu_indices_from(mask)] = True
+
+fig, ax = plt.subplots(figsize=(20, 12))        #Sets up the matplotlib figure
+plt.title("Breast Cancer Feature Correlation")
+
+cmap = sns.diverging_palette(260, 10, as_cmap=True) #Generates a custom diverging colourmap 
+
+sns.heatmap(corrMat, vmax=1.2, square=False, cmap=cmap, mask=mask, ax=ax, annot=True, fmt=".2g", linewidths=1)
+
+sns.pairplot(all_df[list(all_df.columns[1:11]) + ["Diagnosis"]], hue="Diagnosis")
+
+##DATA PRE-PROCESSING AND ANALYSIS##
+
+#Feature normalisation
+X = all_df.drop("Diagnosis", axis=1)    #Assign features to X
+
+#Normalise features to use zero mean normalisation, only for the first 10 features, but try yourself to visualise more features
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+Xs = scaler.fit_transform(X)
+fig, ax = plt.subplots(1, figsize=(20,8))
+sns.boxplot(data=Xs, ax=ax)
+
+#Apply PCA for dimensionality reduction 
+from sklearn.decomposition import PCA 
+
+feature_names = list(X.columns)
+pca = PCA(n_components=10)
+Xs_pca = pca.fit_transform(Xs)
+
+#Only retain the first 2 modes of PCA as the new features
+PCA_df = pd.DataFrame()
+PCA_df["PCA_1"] = Xs_pca[:, 0]
+PCA_df["PCA_2"] = Xs_pca[:, 1]
+
+#Visualise the Malignant and Benign using the 2 PCA features
+plt.figure(figsize=(6,6))
+plt.plot(PCA_df['PCA_1'][all_df['Diagnosis'] == 'M'],PCA_df['PCA_2'][all_df['Diagnosis'] == 'M'],'ro', alpha = 0.7, markeredgecolor = 'k')
+plt.plot(PCA_df['PCA_1'][all_df['Diagnosis'] == 'B'],PCA_df['PCA_2'][all_df['Diagnosis'] == 'B'],'bo', alpha = 0.7, markeredgecolor = 'k')
+plt.xlabel('PCA_1')
+plt.ylabel('PCA_2')
+plt.legend(['Malignant','Benign']);
+
+##PREDICTIVE MODEL USING SUPPORT VECTOR MACHINE (SVM)##
+
+#Transform the class labels from their original string representation (M and B) into integers 1:M, 0:B
+from sklearn.preprocessing import LabelEncoder
+
+le = LabelEncoder()
+all_df["Diagnosis"] = le.fit_transform(all_df["Diagnosis"])
+all_df.head()
+
+y = all_df["Diagnosis"] #Assign numerical label to y
+
+#%%
+#Stratified sampling  Divide data into training and testing sets. Pay attention that we are using the normalised data value Xs rather than X. You may try X 
+from sklearn.model_selection import train_test_split
+
+Xs_train, Xs_test, y_train, y_test = train_test_split(Xs, y, test_size=0.3, random_state=1, stratify=y)
+
+#Use kernel SVM classifier to train a model based on 70% of the data
+from sklearn.svm import SVC
+
+clf = SVC(C=1.0, kernel='rbf', degree=3, gamma='auto', probability=True)
+clf.fit(Xs_train, y_train)
+
+#Classify the test dataset and output the accuracy
+
+classifier_score = clf.score(Xs_test, y_test)
+print('The classifer accuracy score is {:03.2f}'.format(classifier_score))
+
+#Now let's try K-fold cross validation. Get average of 5-fold cross-validation score using an SVM classifier. Please try different numbers of folds and observe the results
+from sklearn.model_selection import cross_val_score
+
+n_folds = 5
+clf_cv = SVC(C=1.0, kernel='rbf', degree=3, gamma='auto')
+cv_error = np.average(cross_val_score(clf_cv, Xs, y, cv=n_folds))
+print('The {}-fold cross-validation accuracy score for this classifier is {:.2f}'.format(n_folds, cv_error))
+
+#Now let's try classification with some selected features, not all the features. With 3 features, the classification accuracy is already quite good ~95%. Try to include more features and observe
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.pipeline import Pipeline
+
+clf_fs_cv = Pipeline([('feature_selector', SelectKBest(f_classif, k=3)), ('svc', SVC(C=1.0, kernel='rbf', degree=3, gamma='auto', probability=True,))]) #Model with just 3 best features selected: k = 3 
+scores = cross_val_score(clf_fs_cv, Xs, y, cv=5) # 5 folds
+
+print(scores)
+avg = (100 * np.mean(scores), 100 * np.std(scores)/np.sqrt(scores.shape[0]))
+print("Average score and standard deviation: (%.2f +- %.3f)%%" %avg)
+
+##EVALUATION RESULTS##
+
+#We use a confusion matrix (TP, TN, FP, FN) to visualise the performance
+from sklearn.metrics import confusion_matrix, classification_report
+
+y_pred = clf.fit(Xs_train, y_train).predict(Xs_test)
+cm = confusion_matrix(y_test, y_pred)
+
+fig, ax = plt.subplots(figsize=(3,3))
+ax.matshow(cm, cmap=plt.cm.Blues, alpha=0.3) #Plotting the confusion matrix
+
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        ax.text(x=j, y=i, s=cm[i,j], va='center', ha='center')
+        
+classes = ["Benign", "Malignant"]
+tick_marks = np.arange(len(classes))
+plt.xticks(tick_marks, classes, rotation=45)
+plt.yticks(tick_marks, classes)
+plt.xlabel('Predicted Values',)
+plt.ylabel('Actual Values');
+print(classification_report(y_test, y_pred))
+
+#Plot the receiver operating characteristic curve (ROC)
+from sklearn.metrics import roc_curve, auc
+
+plt.figure(figsize=(10,8))
+probas_ = clf.predict_proba(Xs_test)
+fpr, tpr, thresholds = roc_curve(y_test, probas_[:, 1])
+roc_auc = auc(fpr, tpr)
+plt.plot(fpr, tpr, lw=1, label='ROC fold (area = %0.2f)' % (roc_auc))
+plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Random')
+plt.xlim([-0.05, 1.05])
+plt.ylim([-0.05, 1.05])
+plt.xlabel('False Positive Rate | 1 - specificity (1 - Benign recall)')
+plt.ylabel('True Positive Rate | Sensitivity (Malignant recall)')
+plt.title('Receiver Operating Characteristic')
+plt.legend(loc="lower right")
+plt.axes().set_aspect(1);
+
+##OPTIONAL TASKS##
+
+# Try some other modelling methods and compare the results: Logistic
+# regression; K nearest neighbour, Gaussian Naive Bayes, Decision Trees,
+# Linear Discriminant Analysis.
+# Observe the results if we don't normalise the feature value range
+# Instead of using the default parameter settings for the modelling methods
+# (i.e. SVM, KNN, LG, etc), check the related documents and try different
+# settings to see if the performance can be improved.
+# Check other feature selection methods and compare if the automatically
+# selected features are consistent with the observations using the
+# correlation plots and box plots.
