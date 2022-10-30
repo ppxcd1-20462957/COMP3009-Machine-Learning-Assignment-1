@@ -35,8 +35,29 @@ class Preprocess:
         return x
 
 #four exmaple classes depending on the models we use
-class Model1:
-    pass
+class DecisionTreeReg:
+    def __init__(self, train_X, train_Y, test_X, test_Y):
+    from sklearn.tree import DecisionTreeRegressor
+    from sklearn.model_selection import cross_val_score
+    decision_regressor = DecisionTreeRegressor(random_state=44)
+    decision_regressor.fit(train_X, train_Y)
+    cross_val = cross_val_score(decision_regressor, train_X, train_Y, scoring='neg_mean_squared_error', cv=10)
+    print("Cross validation score:", cross_val)
+    pred_Y = decision_regressor.predict(test_X)
+    self.calculate_mse(pred_Y, test_Y)
+  
+  def convert_to_numpy (self, train_X, train_Y, test_X, test_Y):
+    train_X = train_X.to_numpy()
+    train_Y = train_Y.to_numpy()
+    test_X = test_X.to_numpy()
+    test_Y = test_Y.to_numpy()
+
+    return train_X, train_Y, test_X, test_Y
+  
+  def calculate_mse(self, Pred_Y, test_Y):
+    from sklearn.metrics import mean_squared_error
+    mse = mean_squared_error(Pred_Y, test_Y)
+    print("MSE:", mse)
 
 class Model2:
     pass
