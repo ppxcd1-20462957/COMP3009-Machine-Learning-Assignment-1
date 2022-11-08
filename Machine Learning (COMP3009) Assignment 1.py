@@ -97,33 +97,34 @@ class SVMClf:
         from sklearn.svm import SVC
         from sklearn.model_selection import cross_val_score
         svm_clf = SVC(C=1.0, kernel='rbf', degree=3, gamma='auto', probability=True)
-        svm_clf.fit(train_X, train_Y)
+        svm_clf.fit(train_X, train_Y.values.ravel())
         svm_clf_score = svm_clf.score(test_X, test_Y)
-        print('The classifer accuracy score is {:03.2f}'.format(svm_clf_score))
+        print('The SVM Classifier accuracy score is {:03.2f}'.format(svm_clf_score))
         svm_pred_Y = svm_clf.predict(test_X)
         n_folds = 5
-        cross_valSVM = np.average(cross_val_score(svm_clf, train_X, train_Y, cv=n_folds))
-        print("The {}-fold cross-validation accuracy score for this classifier is {:2f}".format(n_folds, cross_valSVM))
+        cross_valSVM = np.average(cross_val_score(svm_clf, train_X, train_Y.values.ravel(), cv=n_folds))
+        print("The {}-fold cross-validation accuracy score for the SVM Classifier is {:2f}".format(n_folds, cross_valSVM))
 #       self.calculate[INSERT EVALUATION METRIC HERE]
-
-
 
 class DecisionTreeClf:
     def __init__(self, train_X, train_Y, test_X, test_Y):
         from sklearn.tree import DecisionTreeClassifier
         from sklearn.model_selection import cross_val_score
         dt_clf = DecisionTreeClassifier()
-        dt_clf.fit(train_X, train_Y)
+        dt_clf.fit(train_X, train_Y.values.ravel())
         dt_clf_score = dt_clf.score(test_X, test_Y)
         dt_pred_Y = dt_clf.predict(test_X)
-        print('The classifer accuracy score is {:03.2f}'.format(dt_clf_score))
+        print('The DT Classifier accuracy score is {:03.2f}'.format(dt_clf_score))
         n_folds = 5
-        cross_valDT = np.average(cross_val_score(dt_clf, train_X, train_Y, cv=n_folds))
-        print("The {}-fold cross-validation accuracy score for this classifier is {:2f}".format(n_folds, cross_valDT))
+        cross_valDT = np.average(cross_val_score(dt_clf, train_X, train_Y.values.ravel(), cv=n_folds))
+        print("The {}-fold cross-validation accuracy score for the Decision Tree Classifier is {:2f}".format(n_folds, cross_valDT))
 #       self.calculate[INSERT EVALUATION METRIC HERE]
+        
         
 
 if __name__ == '__main__':
     wine_path = 'D:\OneDrive\Academia\MSc Machine Learning in Science\Modules\COMP3009 Machine Learning\Submissions\Assignment 1\wine.csv'
     wine_dataset = Preprocess(wine_path)
-    #Model1(wine_dataset.train_X, wine_dataset.train_Y, wine_dataset.test_X, wine_dataset.test_Y)
+    SVMClf(wine_dataset.train_X, wine_dataset.train_Y, wine_dataset.test_X, wine_dataset.test_Y)
+    DecisionTreeClassifier(wine_dataset.train_X, wine_dataset.train_Y, wine_dataset.test_X, wine_dataset.test_Y)
+    
