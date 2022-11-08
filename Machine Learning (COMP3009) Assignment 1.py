@@ -59,8 +59,32 @@ class DecisionTreeReg:
     mse = mean_squared_error(Pred_Y, test_Y)
     print("MSE:", mse)
 
-class Model2:
-    pass
+class MLP_sklearn:
+  def __init__(self, train_X, train_Y, test_X, test_Y):
+    
+    from sklearn.neural_network import MLPRegressor
+    from sklearn.model_selection import cross_val_score
+
+    train_X, train_Y, test_X, test_Y = self.convert_to_numpy(train_X, train_Y, test_X, test_Y)
+    mlp_model = MLPRegressor(hidden_layer_sizes=(8,16),activation="relu" ,random_state=42, max_iter=1000).fit(train_X, train_Y)
+    cross_val = cross_val_score(mlp_model, train_X, np.ravel(train_Y), scoring='neg_mean_squared_error', cv=10)
+    print("Cross validation score:", cross_val)
+
+    pred_Y=mlp_model.predict(test_X)
+    self.calculate_mse(pred_Y, test_Y)
+    
+  def convert_to_numpy (self, train_X, train_Y, test_X, test_Y):
+    train_X = train_X.to_numpy()
+    train_Y = train_Y.to_numpy()
+    test_X = test_X.to_numpy()
+    test_Y = test_Y.to_numpy()
+
+    return train_X, train_Y, test_X, test_Y
+
+  def calculate_mse(self, Pred_Y, test_Y):
+    from sklearn.metrics import mean_squared_error
+    mse = mean_squared_error(Pred_Y, test_Y)
+    print("MSE:", mse)
 
 class Model3:
     pass
