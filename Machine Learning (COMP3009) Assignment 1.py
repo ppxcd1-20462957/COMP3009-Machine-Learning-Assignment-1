@@ -35,6 +35,8 @@ class Preprocess:
         return x
 
 #four exmaple classes depending on the models we use
+#Regression Tasks
+
 class DecisionTreeReg:
     def __init__(self, train_X, train_Y, test_X, test_Y):
     from sklearn.tree import DecisionTreeRegressor
@@ -86,11 +88,29 @@ class MLP_sklearn:
     mse = mean_squared_error(Pred_Y, test_Y)
     print("MSE:", mse)
 
-class Model3:
-    pass
+    
 
-class Model4:
-    pass
+#Classification Tasks
+
+class SVMClf:
+    def __init__(self, train_X, train_Y, test_X, test_Y):
+        from sklearn.svm import SVC
+        svm_clf = SVC(C=1.0, kernel='rbf', degree=3, gamma='auto', probability=True)
+        svm_clf.fit(train_X, train_Y)
+        svm_clf_score = svm_clf.score(test_X, test_Y)
+        print('The classifer accuracy score is {:03.2f}'.format(svm_clf_score))
+        svm_pred_Y = svm_clf.predict(test_X)
+#       self.calculate[INSERT EVALUATION METRIC HERE]
+
+class DecisionTreeClf:
+    def __init__(self, train_X, train_Y, test_X, test_Y):
+        from sklearn.tree import DecisionTreeClassifier
+        dt_clf = DecisionTreeClassifier()
+        dt_clf.fit(train_X, train_Y)
+        dt_clf_score = dt_clf.score(test_X, test_Y)
+        y_pred = dt_clf.predict(test_X)
+        print('The classifer accuracy score is {:03.2f}'.format(dt_clf_score))
+#       self.calculate[INSERT EVALUATION METRIC HERE]
 
 if __name__ == '__main__':
     wine_path = 'D:\OneDrive\Academia\MSc Machine Learning in Science\Modules\COMP3009 Machine Learning\Submissions\Assignment 1\wine.csv'
