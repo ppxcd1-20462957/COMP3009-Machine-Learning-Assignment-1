@@ -7,6 +7,7 @@ import keras
 
 class Preprocess:
     def __init__(self, csv):
+        self.correlarion(csv)
         self.train_X, self.train_Y, self.test_X, self.test_Y = self.data_manager(csv)
 
     def data_manager(self, csv):
@@ -33,6 +34,19 @@ class Preprocess:
             x[i] = (x[i] - x[i].min()) / (x[i].max() - x[i].min())
 
         return x
+    def correlarion(self, csv):
+        df = pd.read_csv(csv) 
+        corrMatt = df.corr()
+        # Generate a mask for the upper triangle
+        mask = np.zeros_like(corrMatt)
+        mask[np.triu_indices_from(mask)] = True
+        # Set up the matplotlib figure
+        fig, ax = plt.subplots(figsize=(20, 12))
+        plt.title('Obesity Feature Correlation')
+        # Generate a custom diverging colormap
+        cmap = sb.diverging_palette(260, 10, as_cmap=True)
+        # Draw the heatmap with the mask and correct aspect ratio
+        sb.heatmap(corrMatt, vmax=1.2, square=False, cmap=cmap, mask=mask, ax=ax, annot=True, fmt='.2g', linewidths=1);
 
 #four exmaple classes depending on the models we use
 #Regression Tasks
