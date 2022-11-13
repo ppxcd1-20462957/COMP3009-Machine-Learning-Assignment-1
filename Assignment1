@@ -59,7 +59,7 @@ class Preprocessing_Wine:
 
         return x
 
-    def correlarion(self, csv):
+    def correlation(self, csv):
         df = pd.read_csv(csv) 
         correlation_matrix = df.corr()
 
