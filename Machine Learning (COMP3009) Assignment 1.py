@@ -6,7 +6,7 @@ import sklearn
 import keras
 
 class Preprocess:
-    def __init__(self, csv):
+   def __init__(self, csv):
         self.correlarion(csv)
         self.train_X, self.train_Y, self.test_X, self.test_Y = self.data_manager(csv)
 
