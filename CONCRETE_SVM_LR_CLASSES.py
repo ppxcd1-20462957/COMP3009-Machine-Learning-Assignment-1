@@ -15,7 +15,7 @@ class SVMR:
     def __init__(self, train_X, train_Y, test_X, test_Y):
         from sklearn.svm import SVR
         from sklearn.model_selection import cross_val_score
-        svm_r = SVR(C=1.0, kernel='poly',degree=7,gamma='scale')
+        svm_r = SVR(C=1.0, kernel='poly',degree=6,gamma='scale')
         svm_r.fit(train_X, train_Y)
         svm_r_score = svm_r.score(test_X, test_Y) #R2 score
         print('The SVM accuracy score is {:03.2f}'.format(svm_r_score))
