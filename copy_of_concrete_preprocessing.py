@@ -79,3 +79,25 @@ print("Cross validation score:", cross_val_linear)
 pred_Y = linear.predict(test_X)
 mse = mean_squared_error(test_Y, pred_Y)
 print("MSE:", mse)
+
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_squared_error
+decision_regressor = DecisionTreeRegressor(random_state=0)
+decision_regressor.fit(X_train, Y_train)
+cross_val = cross_val_score(decision_regressor, X_train, Y_train, scoring='neg_mean_squared_error', cv=10)
+print("Cross validation score:", cross_val)
+Y_pred = decision_regressor.predict(X_test)
+mse = mean_squared_error(Y_pred, Y_test)
+print("MSE:", mse)
+
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import cross_val_score
+
+mlp_model = MLPRegressor(hidden_layer_sizes=(16,32),activation="relu" ,random_state=42, max_iter=1000).fit(X_train, Y_train)
+cross_val = cross_val_score(mlp_model, X_train, np.ravel(Y_train), scoring='neg_mean_squared_error', cv=10)
+print("Cross validation score:", cross_val)
+pred_Y=mlp_model.predict(X_test)
+Y_pred = decision_regressor.predict(X_test)
+mse = mean_squared_error(Y_pred, Y_test)
+print("MSE:", mse)
